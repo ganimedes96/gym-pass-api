@@ -1,11 +1,30 @@
-version: '3'
+version: "3"
 
 services:
-  api-gym-pass-pg:
+  gym-pass-postgres:
     image: bitnami/postgresql
+    restart: always
     ports:
       - 5432:5432
     environment:
-      - POSTGRESQL_USERNAME=docker  
-      - POSTGRESQL_PASSWORD=docker  
-      - POSTGRESQL_DATABASE=apigympass 
+      - POSTGRESQL_USERNAME=docker
+      - POSTGRESQL_PASSWORD=docker
+      - POSTGRESQL_DATABASE=apigympass
+
+  gym-pass-server:
+    image: node:alpine
+    build: .
+    tty: true
+    stdin_open: true
+    container_name: gym-pass-backend
+    working_dir: /app
+    ports:
+      - 3333:3333
+    environment:
+      - NODE_ENV=dev
+      - JWT_SECRET=secret
+      - DATABASE_URL=postgresql://docker:docker@gym-pass-postgres:5432/apigympass?schema=public
+    volumes:
+      - ./:/app
+    depends_on:
+      - gym-pass-postgres
